@@ -1,12 +1,12 @@
 from flask import Flask, render_template, request, jsonify
-import openai
+import requests
 import os
 import traceback
 
 app = Flask(__name__, template_folder='templates')
 
-# ✅ Securely load API key from environment
-openai.api_key = os.getenv("OPENAI_API_KEY")
+# ✅ Use your OpenRouter API key (get from https://openrouter.ai)
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 
 @app.route("/")
 def home():
@@ -26,12 +26,26 @@ Rules: under 30 words, 1–2 emojis, 1–2 hashtags, no explanation, no formatti
 """
 
     try:
-        response = openai.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[{"role": "user", "content": prompt}]
-        )
-        caption = response.choices[0].message.content.strip()
+        headers = {
+            "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+            "Content-Type": "application/json",
+            "HTTP-Referer": "https://yourdomain.com",  # Optional: update with your actual site
+            "X-Title": "Caption Generator"
+        }
+
+        data = {
+            "model": "deepseek/deepseek-chat-v3-0324:free",
+            "messages": [
+                {"role": "user", "content": prompt}
+            ]
+        }
+
+        response = requests.post("https://openrouter.ai/api/v1/chat/completions", json=data, headers=headers)
+        result = response.json()
+
+        caption = result["choices"][0]["message"]["content"].strip()
         return jsonify({"caption": caption})
+
     except Exception as e:
         traceback.print_exc()
         return jsonify({"error": f"Error generating caption: {str(e)}"})
