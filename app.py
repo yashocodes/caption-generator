@@ -4,8 +4,8 @@ import os
 
 app = Flask(__name__, template_folder='templates')
 
-# ✅ Set your actual API key here
-openai.api_key = "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"  # Replace with your OpenAI key
+# ✅ Use environment variable for security
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 @app.route("/")
 def home():
@@ -25,14 +25,10 @@ Rules: under 30 words, 1–2 emojis, 1–2 hashtags, no explanation, no formatti
 """
 
     try:
-        client = openai.OpenAI(api_key=openai.api_key)  # ✅ create client with v1.0+
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",  # or "gpt-3.5-turbo" if not available
-            messages=[
-                {"role": "user", "content": prompt}
-            ]
+        response = openai.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": prompt}]
         )
-
         caption = response.choices[0].message.content.strip()
         return jsonify({"caption": caption})
 
