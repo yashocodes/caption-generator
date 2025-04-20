@@ -1,10 +1,11 @@
 from flask import Flask, render_template, request, jsonify
 import openai
 import os
+import traceback
 
 app = Flask(__name__, template_folder='templates')
 
-# ✅ Use environment variable for security
+# ✅ Securely load API key from environment
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 @app.route("/")
@@ -31,10 +32,9 @@ Rules: under 30 words, 1–2 emojis, 1–2 hashtags, no explanation, no formatti
         )
         caption = response.choices[0].message.content.strip()
         return jsonify({"caption": caption})
-
     except Exception as e:
-        print("🔥 ERROR:", e)
-        return jsonify({"error": "Error generating caption. Please try again."})
+        traceback.print_exc()
+        return jsonify({"error": f"Error generating caption: {str(e)}"})
 
 if __name__ == "__main__":
     app.run(debug=True)
