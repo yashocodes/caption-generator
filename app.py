@@ -1,9 +1,11 @@
 from flask import Flask, render_template, request, jsonify
-import requests
+import openai
+import os
 
 app = Flask(__name__, template_folder='templates')
 
-OPENROUTER_API_KEY = "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"  # 🔐 Replace with your actual key
+# ✅ Set your actual API key here
+openai.api_key = "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"  # Replace with your OpenAI key
 
 @app.route("/")
 def home():
@@ -23,22 +25,19 @@ Rules: under 30 words, 1–2 emojis, 1–2 hashtags, no explanation, no formatti
 """
 
     try:
-        response = requests.post(
-            "https://openrouter.ai/api/v1/chat/completions",
-            headers={
-                "Authorization": f"Bearer {OPENROUTER_API_KEY}",
-                "Content-Type": "application/json"
-            },
-            json={
-                "model": "deepseek/deepseek-chat-v3-0324:free",
-                "messages": [
-                    {"role": "user", "content": prompt}
-                ]
-            }
+        client = openai.OpenAI(api_key=openai.api_key)  # ✅ create client with v1.0+
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",  # or "gpt-3.5-turbo" if not available
+            messages=[
+                {"role": "user", "content": prompt}
+            ]
         )
-        caption = response.json()["choices"][0]["message"]["content"].strip()
+
+        caption = response.choices[0].message.content.strip()
         return jsonify({"caption": caption})
+
     except Exception as e:
+        print("🔥 ERROR:", e)
         return jsonify({"error": "Error generating caption. Please try again."})
 
 if __name__ == "__main__":
